@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SINGH GENERAL STORE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-50 font-sans antialiased pb-32">
+
+    <!-- Navbar -->
+    <nav class="bg-emerald-600 text-white sticky top-0 z-50 shadow-md px-4 py-3 flex items-center justify-between">
+        <div>
+            <h1 class="text-xl font-bold tracking-wide">SINGH GENERAL STORE</h1>
+            <p class="text-xs text-emerald-100 flex items-center gap-1 mt-0.5">
+                <i class="fab fa-whatsapp"></i> +91 90060 90608
+            </p>
+        </div>
+        <div class="relative cursor-pointer" onclick="openCartModal()">
+            <i class="fas fa-shopping-cart text-2xl"></i>
+            <span id="cart-count" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center hidden">0</span>
+        </div>
+    </nav>
+
+    <!-- Search and Quick Category Filter -->
+    <div class="max-w-4xl mx-auto px-4 mt-4">
+        <div class="relative">
+            <i class="fas fa-search absolute left-3 top-3.5 text-gray-400"></i>
+            <input type="text" id="search-bar" onkeyup="filterProducts()" placeholder="Search items (e.g. Maggi, Sprite)..." class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-sm text-base">
+        </div>
+        
+        <div class="flex gap-2 mt-3 overflow-x-auto pb-1 text-sm scrollbar-none">
+            <button onclick="filterCategory('all')" class="cat-btn px-4 py-2 bg-emerald-600 text-white rounded-full font-medium whitespace-nowrap shadow-sm">All Items</button>
+            <button onclick="filterCategory('Snacks')" class="cat-btn px-4 py-2 bg-white text-gray-600 border border-gray-200 rounded-full font-medium whitespace-nowrap">Snacks & Biscuits</button>
+            <button onclick="filterCategory('Drinks')" class="cat-btn px-4 py-2 bg-white text-gray-600 border border-gray-200 rounded-full font-medium whitespace-nowrap">Drinks & Beverages</button>
+            <button onclick="filterCategory('Essentials')" class="cat-btn px-4 py-2 bg-white text-gray-600 border border-gray-200 rounded-full font-medium whitespace-nowrap">Daily Essentials</button>
+        </div>
+    </div>
+
+    <!-- Product Grid -->
+    <div class="max-w-4xl mx-auto px-4 mt-6 grid grid-cols-2 sm:grid-cols-3 gap-4" id="product-container">
+        <!-- Products dynamically generated via JavaScript to keep payload accurate -->
+    </div>
+
+    <!-- Live Sticky Floating Cart Bar -->
+    <div id="sticky-cart-bar" class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-2xl p-4 flex items-center justify-between max-w-4xl mx-auto z-40 hidden rounded-t-2xl">
+        <div>
+            <p class="text-xs text-gray-500 font-medium">Selected Items</p>
+            <p class="text-xl font-bold text-gray-800" id="sticky-total">₹0.00</p>
+        </div>
+        <button onclick="openCartModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-md transition-all">
+            View Order <i class="fas fa-arrow-right text-sm"></i>
+        </button>
+    </div>
+
+    <!-- Shopping Cart Modal (Includes QR Scanner Dashboard) -->
+    <div id="cart-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4 transition-opacity">
+        <div class="bg-white w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-slide-up">
+            <!-- Modal Header -->
+            <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50">
+                <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                    <i class="fas fa-shopping-bag text-emerald-600"></i> Your Basket
+                </h3>
+                <button onclick="closeCartModal()" class="text-gray-400 hover:text-gray-600 text-xl p-1">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Modal Content (Scrollable) -->
+            <div class="p-5 overflow-y-auto flex-1 space-y-6">
+                <!-- Cart Items List -->
+                <div id="cart-items-list" class="divide-y divide-gray-100">
+                    <!-- Dynamic Cart Rows -->
+                </div>
+
+                <!-- Bill Breakup -->
+                <div class="bg-gray-50 rounded-xl p-4 space-y-2 border border-gray-100">
+                    <div class="flex justify-between text-sm text-gray-600">
+                        <span>Items Subtotal:</span>
+                        <span id="modal-subtotal">₹0.00</span>
+                    </div>
+                    <div class="flex justify-between text-base font-bold text-gray-800 pt-2 border-t border-gray-200">
+                        <span>Total Payable:</span>
+                        <span id="modal-total" class="text-emerald-600">₹0.00</span>
+                    </div>
+                </div>
+
+                <!-- Interactive Dynamic Payment Dynamic QR Scanner Module -->
+                <div class="border-2 border-dashed border-emerald-200 bg-emerald-50/50 rounded-2xl p-5 text-center flex flex-col items-center justify-center relative shadow-sm">
+                    <div class="absolute top-3 left-3 bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
+                        Instant Dynamic UPI
+                    </div>
+                    
+                    <p class="text-xs text-gray-500 mt-2 font-medium">Scan QR code using any UPI app to pay directly</p>
+                    
+                    <!-- Dynamic Dynamic QR Destination Container -->
+                    <div class="my-4 bg-white p-3 rounded-xl shadow-md inline-block border border-gray-100 transition-all hover:scale-105 duration-200">
+                        <img id="upi-dynamic-qr" src="" alt="Scan to Pay" class="w-44 h-44 object-contain">
+                    </div>
+                    
+                    <div class="flex items-center gap-1.5 bg-white border border-gray-200 px-3 py-1.5 rounded-full shadow-sm">
+                        <span class="text-xs font-semibold text-gray-700">UPI ID:</span>
+                        <span class="text-xs font-mono font-bold text-emerald-700 selection:bg-emerald-100" id="shop-upi-id">Q673525302@ybl</span>
+                        <button onclick="copyUPI()" class="text-gray-400 hover:text-emerald-600 transition-colors ml-1 p-0.5" title="Copy UPI ID">
+                            <i class="far fa-copy text-sm" id="copy-icon"></i>
+                        </button>
+                    </div>
+                    <p class="text-[10px] text-gray-400 mt-2 italic">QR updates automatically based on your total basket value.</p>
+                </div>
+            </div>
+
+            <!-- Modal Checkout Button Footer -->
+            <div class="p-4 border-t border-gray-100 bg-white">
+                <button onclick="sendOrderViaWhatsApp()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 rounded-xl font-bold text-base flex items-center justify-center gap-2 shadow-lg transition-all active:scale-[0.99]">
+                    <i class="fab fa-whatsapp text-lg"></i> Send Order & Payment Screenshot
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast toast alerts -->
+    <div id="toast" class="fixed top-20 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs font-medium px-4 py-2.5 rounded-full shadow-xl z-50 opacity-0 pointer-events-none transition-opacity duration-300 flex items-center gap-2">
+        <i class="fas fa-check-circle text-emerald-400"></i> <span id="toast-msg">Copied!</span>
+    </div>
+
+    <script>
+        // Full Image Scanned Inventory Dataset (42 Items parsed explicitly)
+        const products = [
+            { id: 1, name: "Kur Kure (Small Pack)", category: "Snacks", price: 10.00, weight: "Standard" },
+            { id: 2, name: "Kur Kure (Large Pack)", category: "Snacks", price: 20.00, weight: "Standard" },
+            { id: 3, name: "Khatta Meetha (Small Pack)", category: "Snacks", price: 10.00, weight: "Standard" },
+            { id: 4, name: "Khatta Meetha (Large Pack)", category: "Snacks", price: 20.00, weight: "Standard" },
+            { id: 5, name: "Bhujia (Small Pack)", category: "Snacks", price: 10.00, weight: "Standard" },
+            { id: 6, name: "Bhujia (Large Pack)", category: "Snacks", price: 20.00, weight: "Standard" },
+            { id: 7, name: "Aalu Bhujia (Small Pack)", category: "Snacks", price: 10.00, weight: "Standard" },
+            { id: 8, name: "Aalu Bhujia (Large Pack)", category: "Snacks", price: 20.00, weight: "Standard" },
+            { id: 9, name: "Moong Dal (Large Pack)", category: "Snacks", price: 20.00, weight: "Standard" },
+            { id: 10, name: "Navrattan Mixture (Small Pack)", category: "Snacks", price: 10.00, weight: "Standard" },
+            { id: 11, name: "Navrattan Mixture (Large Pack)", category: "Snacks", price: 20.00, weight: "Standard" },
+            { id: 12, name: "All in One Mixture (Small Pack)", category: "Snacks", price: 10.00, weight: "Standard" },
+            { id: 13, name: "All in One Mixture (Large Pack)", category: "Snacks", price: 20.00, weight: "Standard" },
+            { id: 14, name: "Corn Mixture", category: "Snacks", price: 10.00, weight: "Standard" },
+            { id: 15, name: "Little Hearts", category: "Snacks", price: 5.00, weight: "Standard" },
+            { id: 16, name: "Lays", category: "Snacks", price: 10.00, weight: "Standard" },
+            { id: 17, name: "Bourbon Biscuit", category: "Snacks", price: 10.00, weight: "Standard" },
+            { id: 18, name: "Oreo Biscuit", category: "Snacks", price: 10.00, weight: "Standard" },
+            { id: 19, name: "Bounce Choco Crème", category: "Snacks", price: 10.00, weight: "Standard" },
+            { id: 20, name: "Mom's Magic", category: "Snacks", price: 10.00, weight: "Standard" },
+            { id: 21, name: "Cadbury Cookies", category: "Snacks", price: 30.00, weight: "Standard" },
+            { id: 22, name: "Lotte Choco Pie", category: "Snacks", price: 10.00, weight: "Standard" },
+            { id: 23, name: "Cake Gobbles", category: "Snacks", price: 10.00, weight: "Standard" },
+            { id: 24, name: "HR Soan Papdi (Small)", category: "Snacks", price: 90.00, weight: "Standard" },
+            { id: 25, name: "HR Soan Papdi (Large)", category: "Snacks", price: 165.00, weight: "Standard" },
+            { id: 26, name: "5 Star", category: "Snacks", price: 20.00, weight: "Standard" },
+            { id: 27, name: "Dairy Milk", category: "Snacks", price: 20.00, weight: "Standard" },
+            { id: 28, name: "Kit Kat", category: "Snacks", price: 25.00, weight: "Standard" },
+            { id: 29, name: "Sprite (2 Ltr)", category: "Drinks", price: 100.00, weight: "2 Ltr" },
+            { id: 30, name: "Sprite (1 Ltr)", category: "Drinks", price: 50.00, weight: "1 Ltr" },
+            { id: 31, name: "Sprite (750 ml)", category: "Drinks", price: 40.00, weight: "750 ml" },
+            { id: 32, name: "Sprite (250 ml)", category: "Drinks", price: 20.00, weight: "250 ml" },
+            { id: 33, name: "Thums Up (2 Ltr)", category: "Drinks", price: 90.00, weight: "2 Ltr" },
+            { id: 34, name: "Thums Up (1 Ltr)", category: "Drinks", price: 50.00, weight: "1 Ltr" },
+            { id: 35, name: "Thums Up (750 ml)", category: "Drinks", price: 40.00, weight: "750 ml" },
+            { id: 36, name: "Thums Up (250 ml)", category: "Drinks", price: 20.00, weight: "250 ml" },
+            { id: 37, name: "Coca Cola (400 ml)", category: "Drinks", price: 20.00, weight: "400 ml" },
+            { id: 38, name: "Maaza (600 ml)", category: "Drinks", price: 40.00, weight: "600 ml" },
+            { id: 39, name: "Maaza (125 ml)", category: "Drinks", price: 10.00, weight: "125 ml" },
+            { id: 40, name: "Hell Energy Drink", category: "Drinks", price: 60.00, weight: "250 ml" },
+            { id: 41, name: "Campa Energy", category: "Drinks", price: 50.00, weight: "185 ml" },
+            { id: 42, name: "Sting Energy", category: "Drinks", price: 20.00, weight: "250 ml" },
+            { id: 43, name: "Limca", category: "Drinks", price: 20.00, weight: "250 ml" },
+            { id: 44, name: "Lahori Zeera", category: "Drinks", price: 20.00, weight: "160 ml" },
+            { id: 45, name: "Bisleri Water", category: "Drinks", price: 10.00, weight: "500 ml" },
+            { id: 46, name: "Nihar Hair Oil", category: "Essentials", price: 43.00, weight: "99 ml" },
+            { id: 47, name: "Sensodyne Tooth Paste", category: "Essentials", price: 20.00, weight: "Standard" },
+            { id: 48, name: "Sensodyne Tooth Brush (Soft)", category: "Essentials", price: 31.00, weight: "Standard" },
+            { id: 49, name: "Sensodyne Tooth Brush (Multi)", category: "Essentials", price: 62.00, weight: "Standard" },
+            { id: 50, name: "Maggi (Small Pack)", category: "Essentials", price: 14.00, weight: "Standard" },
+            { id: 51, name: "Maggi (Medium Pack)", category: "Essentials", price: 60.00, weight: "Standard" },
+            { id: 52, name: "Maggi (Large Family Pack)", category: "Essentials", price: 90.00, weight: "Standard" },
+            { id: 53, name: "Lassi", category: "Drinks", price: 10.00, weight: "Standard" },
+            { id: 54, name: "Mango Lassi", category: "Drinks", price: 10.00, weight: "Standard" },
+            { id: 55, name: "Milk (500 ml)", category: "Essentials", price: 35.00, weight: "500 ml" },
+            { id: 56, name: "Milk (1 Ltr)", category: "Essentials", price: 70.00, weight: "1 Ltr" },
+            { id: 57, name: "Surf Excel", category: "Essentials", price: 10.00, weight: "Standard" },
+            { id: 58, name: "Lifebuoy Soap", category: "Essentials", price: 10.00, weight: "Standard" }
+        ];
+
+        let cart = {};
+
+        // Render Inventory on load
+        function renderInventory() {
+            const container = document.getElementById('product-container');
+            container.innerHTML = '';
+            products.forEach(p => {
+                const card = document.createElement('div');
+                card.className = "product-card bg-white rounded-2xl p-4 border border-gray-100 shadow-sm flex flex-col justify-between items-start transition-all hover:shadow-md";
+                card.setAttribute('data-name', p.name.toLowerCase());
+                card.setAttribute('data-cat', p.category);
+                
+                card.innerHTML = `
+                    <div class="w-full">
+                        <span class="text-[10px] font-bold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full uppercase tracking-wider">${p.category}</span>
+                        <h4 class="text-gray-800 font-bold mt-1 text-sm sm:text-base leading-tight min-h-[40px]">${p.name}</h4>
+                        <p class="text-xs text-gray-400 mt-0.5">${p.weight !== 'Standard' ? p.weight : '1 unit'}</p>
+                    </div>
+                    <div class="w-full flex items-center justify-between mt-4 pt-2 border-t border-gray-50">
+                        <span class="text-base font-black text-gray-900">₹${p.price}</span>
+                        <div id="btn-actions-${p.id}">
+                            <button onclick="addToCart(${p.id})" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold px-3 py-1.5 rounded-xl border border-emerald-200 transition-colors">
+                                ADD <i class="fas fa-plus text-[10px] ml-0.5"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Cart Actions
+        function addToCart(id) {
+            cart[id] = 1;
+            updateCartUI();
+        }
+
+        function changeQty(id, delta) {
+            if (cart[id]) {
+                cart[id] += delta;
+                if (cart[id] <= 0) delete cart[id];
+                updateCartUI();
+            }
+        }
+
+        function updateCartUI() {
+            let total = 0;
+            let count = 0;
+
+            // Update item counters in store view
+            products.forEach(p => {
+                const actionDiv = document.getElementById(`btn-actions-${p.id}`);
+                if (!actionDiv) return;
+                
+                if (cart[p.id] && cart[p.id] > 0) {
+                    actionDiv.innerHTML = `
+                        <div class="flex items-center bg-emerald-600 text-white rounded-xl overflow-hidden shadow-sm">
+                            <button onclick="changeQty(${p.id}, -1)" class="px-2 py-1 text-xs hover:bg-emerald-700 font-bold transition-colors"><i class="fas fa-minus text-[10px]"></i></button>
+                            <span class="px-2 text-xs font-bold font-mono">${cart[p.id]}</span>
+                            <button onclick="changeQty(${p.id}, 1)" class="px-2 py-1 text-xs hover:bg-emerald-700 font-bold transition-colors"><i class="fas fa-plus text-[10px]"></i></button>
+                        </div>
+                    `;
+                    total += p.price * cart[p.id];
+                    count += cart[p.id];
+                } else {
+                    actionDiv.innerHTML = `
+                        <button onclick="addToCart(${p.id})" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold px-3 py-1.5 rounded-xl border border-emerald-200 transition-colors">
+                            ADD <i class="fas fa-plus text-[10px] ml-0.5"></i>
+                        </button>
+                    `;
+                }
+            });
+
+            // Count badge
+            const countBadge = document.getElementById('cart-count');
+            if (count > 0) {
+                countBadge.innerText = count;
+                countBadge.classList.remove('hidden');
+                document.getElementById('sticky-cart-bar').classList.remove('hidden');
+            } else {
+                countBadge.classList.add('hidden');
+                document.getElementById('sticky-cart-bar').classList.add('hidden');
+            }
+
+            document.getElementById('sticky-total').innerText = `₹${total.toFixed(2)}`;
+            document.getElementById('modal-subtotal').innerText = `₹${total.toFixed(2)}`;
+            document.getElementById('modal-total').innerText = `₹${total.toFixed(2)}`;
+
+            // Dynamically refresh the UPI QR code source
+            updatePaymentQR(total);
+        }
+
+        // Live Dynamic UPI String Generation
+        function updatePaymentQR(amount) {
+            const qrImage = document.getElementById('upi-dynamic-qr');
+            const upiId = "Q673525302@ybl";
+            const merchantName = "SINGH GENERAL STORE";
+            
+            if (amount > 0) {
+                // Construct standard UPI deep-link URI parameters
+                const upiUrl = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(merchantName)}&am=${amount.toFixed(2)}&cu=INR`;
+                // Hit official public qr engine API
+                qrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(upiUrl)}&margin=10`;
+            } else {
+                // Fallback basic QR without amount bound
+                const fallbackUrl = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(merchantName)}&cu=INR`;
+                qrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(fallbackUrl)}&margin=10`;
+            }
+        }
+
+        // Generate Structured WhatsApp Payload Intent
+        function sendOrderViaWhatsApp() {
+            let total = 0;
+            let itemsText = "";
+            let idx = 1;
+
+            products.forEach(p => {
+                if (cart[p.id]) {
+                    const rowTotal = p.price * cart[p.id];
+                    itemsText += `${idx}. ${p.name} [Qty: ${cart[p.id]}] - ₹${rowTotal}\n`;
+                    total += rowTotal;
+                    idx++;
+                }
+            });
+
+            if (total === 0) {
+                showToast("Please add items to your cart first!");
+                return;
+            }
+
+            const whatsappMessage = `*🛒 NEW ORDER - SINGH GENERAL STORE*\n` +
+                                    `-----------------------------------\n` +
+                                    `${itemsText}` +
+                                    `-----------------------------------\n` +
+                                    `*💰 Total Bill Amount: ₹${total.toFixed(2)}*\n\n` +
+                                    `*💳 Payment Details:*\n` +
+                                    `Paid via UPI to: *Q673525302@ybl*\n\n` +
+                                    `👉 _Please find attached the transaction reference screenshot._`;
+
+            const waUrl = `https://wa.me/919006090608?text=${encodeURIComponent(whatsappMessage)}`;
+            window.open(waUrl, '_blank');
+        }
+
+        // Auxiliary Interactive Layout Controllers
+        function openCartModal() {
+            document.getElementById('cart-modal').classList.remove('hidden');
+            renderCartModalRows();
+        }
+
+        function closeCartModal() {
+            document.getElementById('cart-modal').classList.add('hidden');
+        }
+
+        function renderCartModalRows() {
+            const list = document.getElementById('cart-items-list');
+            list.innerHTML = '';
+            let hasItems = false;
+
+            products.forEach(p => {
+                if (cart[p.id]) {
+                    hasItems = true;
+                    const itemRow = document.createElement('div');
+                    itemRow.className = "flex items-center justify-between py-3";
+                    itemRow.innerHTML = `
+                        <div>
+                            <h5 class="text-sm font-bold text-gray-800">${p.name}</h5>
+                            <p class="text-xs text-gray-400">₹${p.price} / unit</p>
+                        </div>
+                        <div class="flex items-center bg-gray-100 rounded-xl overflow-hidden">
+                            <button onclick="changeQty(${p.id}, -1); renderCartModalRows();" class="px-2.5 py-1 text-xs text-gray-600 hover:bg-gray-200 font-bold transition-colors"><i class="fas fa-minus text-[10px]"></i></button>
+                            <span class="px-2 text-xs font-bold font-mono text-gray-800">${cart[p.id]}</span>
+                            <button onclick="changeQty(${p.id}, 1); renderCartModalRows();" class="px-2.5 py-1 text-xs text-gray-600 hover:bg-gray-200 font-bold transition-colors"><i class="fas fa-plus text-[10px]"></i></button>
+                        </div>
+                    `;
+                    list.appendChild(itemRow);
+                }
+            });
+
+            if (!hasItems) {
+                list.innerHTML = `<div class="text-center py-8 text-gray-400 text-sm"><i class="fas fa-shopping-basket text-3xl mb-2 block"></i>Your basket is empty.</div>`;
+            }
+        }
+
+        // Live Filters & Search
+        function filterProducts() {
+            const query = document.getElementById('search-bar').value.toLowerCase();
+            const cards = document.querySelectorAll('.product-card');
+            cards.forEach(card => {
+                const name = card.getAttribute('data-name');
+                if (name.includes(query)) {
+                    card.classList.remove('hidden');
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+        }
+
+        function filterCategory(cat) {
+            // Update Active Tab Button Styles
+            const buttons = document.querySelectorAll('.cat-btn');
+            buttons.forEach(btn => {
+                btn.classList.remove('bg-emerald-600', 'text-white');
+                btn.classList.add('bg-white', 'text-gray-600', 'border', 'border-gray-200');
+            });
+            event.currentTarget.classList.remove('bg-white', 'text-gray-600', 'border', 'border-gray-200');
+            event.currentTarget.classList.add('bg-emerald-600', 'text-white');
+
+            const cards = document.querySelectorAll('.product-card');
+            cards.forEach(card => {
+                const pCat = card.getAttribute('data-cat');
+                if (cat === 'all' || pCat === cat) {
+                    card.classList.remove('hidden');
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+        }
+
+        // Copy Utility
+        function copyUPI() {
+            const upiText = document.getElementById('shop-upi-id').innerText;
+            navigator.clipboard.writeText(upiText).then(() => {
+                const icon = document.getElementById('copy-icon');
+                icon.className = "fas fa-check text-emerald-600";
+                showToast("UPI ID Copied to Clipboard!");
+                setTimeout(() => {
+                    icon.className = "far fa-copy text-sm";
+                }, 2000);
+            });
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            toast.classList.remove('opacity-0', 'pointer-events-none');
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'pointer-events-none');
+            }, 2500);
+        }
+
+        // Bootstrap Application
+        window.onload = () => {
+            renderInventory();
+            updateCartUI();
+        };
+    </script>
+</body>
+</html>
