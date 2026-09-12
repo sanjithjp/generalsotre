@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sanjit General Store</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f5f7fa;color:#222}
+header{background:#146c43;color:#fff;padding:18px 14px;text-align:center;position:sticky;top:0;z-index:5}
+header h1{margin:0 0 5px;font-size:26px}header p{margin:0;font-size:14px}
+.container{max-width:1100px;margin:auto;padding:16px}
+.search{width:100%;padding:13px;border:1px solid #ddd;border-radius:10px;margin-bottom:15px;font-size:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.card{background:#fff;border-radius:12px;padding:15px;box-shadow:0 2px 9px #0001}
+.card h3{margin:0 0 8px;font-size:17px}.size{color:#666;font-size:14px;margin-bottom:8px}
+.price{font-weight:bold;font-size:18px;color:#146c43;margin-bottom:10px}
+button{border:0;border-radius:8px;padding:10px 13px;cursor:pointer;font-weight:bold}
+.add{background:#146c43;color:#fff;width:100%}.add:hover{background:#0d5634}
+.cart{position:fixed;right:16px;bottom:16px;background:#ff8c00;color:#fff;padding:14px 18px;border-radius:30px;z-index:10;box-shadow:0 3px 12px #0003}
+.panel{display:none;background:#fff;border-radius:12px;padding:16px;margin-top:18px;box-shadow:0 2px 9px #0001}
+.row{display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid #eee;padding:10px 0}
+.qty button{padding:5px 9px;background:#eee}.qty span{padding:0 8px}
+input{width:100%;padding:11px;border:1px solid #ddd;border-radius:8px;margin:6px 0}
+.order{background:#25d366;color:white;width:100%;font-size:16px;margin-top:10px}
+.clear{background:#eee;width:100%;margin-top:8px}
+.note{text-align:center;color:#666;font-size:13px;margin:22px 0}
+</style>
+</head>
+<body>
+<header>
+<h1>Sanjit General Store</h1>
+<p>Daily Needs • Snacks • Biscuits • Beverages • Personal Care</p>
+</header>
+
+<div class="container">
+<input id="search" class="search" placeholder="Search item..." oninput="render()">
+<div id="products" class="grid"></div>
+
+<div id="cartPanel" class="panel">
+<h2>🛒 Your Cart</h2>
+<div id="cartItems"></div>
+<h3 id="total"></h3>
+<input id="customer" placeholder="Customer Name">
+<input id="mobile" placeholder="Mobile Number" type="tel">
+<button class="order" onclick="sendWhatsApp()">Order on WhatsApp</button>
+<button class="clear" onclick="clearCart()">Clear Cart</button>
+</div>
+<p class="note">All prices are as per MRP.</p>
+</div>
+
+<button class="cart" onclick="toggleCart()">🛒 Cart (<span id="count">0</span>)</button>
+
+<script>
+const products = [
+["Kur Kure","",10],["Kur Kure","",20],
+["Khatta Meetha","",10],["Khatta Meetha","",20],
+["Bhujia","",10],["Bhujia","",20],["Aalu Bhujia","",20],
+["Moong Dal","",20],["Navrattan Mixture","",10],["Navrattan Mixture","",20],
+["All in One Mixture","",10],["Corn Mixture","",10],["Little Hearts","",5],
+["Lays","",10],["Bourbon Biscuit","",10],["Oreo Biscuit","",10],
+["Bounce Choco Crème","",10],["Mom's Magic","",10],["Cadbury Cookies","",30],
+["Lotte Choco Pie","",10],["Cake Gobbles","",10],["HR Soan Papdi","",90],
+["HR Soan Papdi","",165],["5 Star","",20],["Dairy Milk","",20],["Kit Kat","",25],
+["Sprite","2 Ltr",100],["Sprite","1 Ltr",50],["Sprite","750 ml",50],["Sprite","250 ml",20],
+["Thums Up","2 Ltr",90],["Thums Up","1 Ltr",50],["Thums Up","750 ml",40],["Thums Up","250 ml",20],
+["Cock","400 ml",20],["Maaza","600 ml",40],["Maaza","125 ml",10],["Hell","250 ml",60],
+["Campa Energy","185 ml",30],["Sting Energy","250 ml",20],["Limca","250 ml",20],
+["Lahori Zeera","160 ml",10],["Bisleri","500 ml",10],["Nihar Hair Oil","99 ml",43],
+["Sensodyne Tooth Paste","",20],["Sensodyne Tooth Brush","",31],["Sensodyne Tooth Brush","",62],
+["Maggi","",90],["Maggi","",60],["Maggi","",15]
+];
+
+let cart=[];
+function render(){
+ const q=document.getElementById("search").value.toLowerCase();
+ const box=document.getElementById("products"); box.innerHTML="";
+ products.forEach((p,i)=>{
+   if((p[0]+" "+p[1]).toLowerCase().includes(q)){
+     box.innerHTML+=`<div class="card"><h3>${p[0]}</h3><div class="size">${p[1]||"Pack"}</div><div class="price">₹${p[2].toFixed(2)} <small>(As per MRP)</small></div><button class="add" onclick="add(${i})">Add to Cart</button></div>`;
+   }
+ });
+}
+function add(i){cart.push(i);updateCart()}
+function updateCart(){
+ const counts={}; cart.forEach(i=>counts[i]=(counts[i]||0)+1);
+ let html="",total=0;
+ Object.keys(counts).forEach(k=>{
+   const i=+k,p=products[i],c=counts[i];total+=p[2]*c;
+   html+=`<div class="row"><div><b>${p[0]}</b><br><small>${p[1]||"Pack"} • ₹${p[2].toFixed(2)}</small></div><div class="qty"><button onclick="removeOne(${i})">−</button><span>${c}</span><button onclick="add(${i})">+</button></div></div>`;
+ });
+ document.getElementById("cartItems").innerHTML=html||"<p>Cart is empty.</p>";
+ document.getElementById("total").textContent="Total: ₹"+total.toFixed(2);
+ document.getElementById("count").textContent=cart.length;
+}
+function removeOne(i){const x=cart.indexOf(i);if(x>=0)cart.splice(x,1);updateCart()}
+function toggleCart(){const p=document.getElementById("cartPanel");p.style.display=p.style.display==="block"?"none":"block";updateCart()}
+function clearCart(){cart=[];updateCart()}
+function sendWhatsApp(){
+ if(!cart.length){alert("Please add items to cart.");return}
+ const name=document.getElementById("customer").value.trim()||"Customer";
+ const mobile=document.getElementById("mobile").value.trim()||"-";
+ const counts={};cart.forEach(i=>counts[i]=(counts[i]||0)+1);
+ let msg=`*Sanjit General Store - Order*%0A%0ACustomer: ${name}%0AMobile: ${mobile}%0A%0A`;
+ let total=0,n=1;
+ Object.keys(counts).forEach(k=>{const i=+k,p=products[i],c=counts[i],amt=p[2]*c;total+=amt;msg+=`${n++}. ${p[0]} ${p[1]?"("+p[1]+") ":""}x ${c} = ₹${amt.toFixed(2)}%0A`});
+ msg+=`%0A*Total: ₹${total.toFixed(2)}*%0AAll prices as per MRP.`;
+ window.open("https://wa.me/919006090608?text="+msg,"_blank");
+}
+render();updateCart();
+</script>
+</body>
+</html>
